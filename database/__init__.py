@@ -8,7 +8,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint
 )
 
-from models.database import Base
+from database.database import Base
 
 
 class User(Base):

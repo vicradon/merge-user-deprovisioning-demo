@@ -32,37 +32,3 @@ async def get_employee_modifications(last_sync_timestamp, cursor, page_size):
     updated_data = await fetch_updated_data(last_sync_timestamp, cursor, page_size)
     return updated_data
 
-@app.post('/login')
-def login(
-        # payload: OAuth2PasswordRequestForm = Depends(),
-        # session: Session = Depends(get_db)
-    ):
-    """Processes user's authentication and returns a token
-    on successful authentication.
-
-    request body:
-
-    - username: Unique identifier for a user e.g email, 
-                phone number, name
-
-    - password:
-    """
-    # try:
-    #     user:user_model.User = user_db_services.get_user(
-    #         session=session, email=payload.username
-    #     )
-    # except:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED,
-    #         detail="Invalid user credentials"
-    #     )
-
-    # is_validated:bool = user.validate_password(payload.password)
-    # if not is_validated:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED,
-    #         detail="Invalid user credentials"
-    #     )
-
-    # return user.generate_token()
-    return {'hi': 'there'}
