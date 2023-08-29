@@ -3,16 +3,16 @@ from typing import List, Union
 from pydantic import BaseModel
 
 
-class ItemBase(BaseModel):
+class TaskBase(BaseModel):
     title: str
     description: Union[str, None] = None
 
 
-class ItemCreate(ItemBase):
+class TaskCreate(TaskBase):
     pass
 
 
-class Item(ItemBase):
+class Task(TaskBase):
     id: int
     owner_id: int
 
@@ -25,13 +25,21 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    hashed_password: str
 
 
 class User(UserBase):
     id: int
     is_active: bool
-    items: List[Item] = []
+    Tasks: List[Task] = []
 
     class Config:
         orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str or None = None
+
