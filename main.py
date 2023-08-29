@@ -62,7 +62,7 @@ async def deprovision_users(users):
 @repeat_every(seconds=60 * 60 * 24)
 def sync():
     now = datetime.datetime.now()
-    twentyfour_hours_ago = (now - datetime.timedelta(hours=24)).isofo
+    twentyfour_hours_ago = now - datetime.timedelta(hours=24)
     updated_data = fetch_updated_data(last_sync_timestamp=twentyfour_hours_ago.isoformat())
     deprovision_users(updated_data.results)
 
@@ -74,6 +74,7 @@ async def respond_to_employee_modification_webo(webhook_object: Dict[str, Any]):
 @app.get('/employee-modifications')
 async def get_employee_modifications(last_sync_timestamp, cursor=None, page_size=None):
     updated_data = await fetch_updated_data(last_sync_timestamp, cursor, page_size)
+    deprovision_users(updated_data.results)
     return updated_data
 
 @app.get("/tasks/", response_model=List[schemas.Task])
