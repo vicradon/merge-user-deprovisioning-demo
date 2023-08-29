@@ -45,22 +45,36 @@ async def fetch_updated_data(last_sync_timestamp, cursor=None, page_size=None):
     modified_employees = client.hris.employees.list(modified_after=last_sync_timestamp,cursor=cursor, page_size=page_size)
     return modified_employees
 
+async def deprovision_users(users):
+    db = SessionLocal()
+    for user in users:
+        if user.employment_status == "INACTIVE" and user.termination_date is not None and user.termination_date <= datetime.now().isoformat():
+            user_in_db = get_user_by_email(db, user.work_email)
+            
+            if user_in_db is not None:
+                user_in_db.is_active = False
+
+    db.commit()
+    db.close()
+
 # sync every 24 hours
 @app.on_event("startup")
 @repeat_every(seconds=60 * 60 * 24)
 def sync():
-    fetch_updated_data()
+    now = datetime.datetime.now()
+    twentyfour_hours_ago = (now - datetime.timedelta(hours=24)).isofo
+    updated_data = fetch_updated_data(last_sync_timestamp=twentyfour_hours_ago.isoformat())
+    deprovision_users(updated_data.results)
 
 # respond to webhook requests
 @app.post('/employee-modifications')
-async def root(json_data: Dict[str, Any]):
-    return json_data
+async def respond_to_employee_modification_webo(webhook_object: Dict[str, Any]):
+    deprovision_users([webhook_object.data])
 
 @app.get('/employee-modifications')
-async def get_employee_modifications(last_sync_timestamp, cursor, page_size):
+async def get_employee_modifications(last_sync_timestamp, cursor=None, page_size=None):
     updated_data = await fetch_updated_data(last_sync_timestamp, cursor, page_size)
     return updated_data
-
 
 @app.get("/tasks/", response_model=List[schemas.Task])
 def show_records(db: Session = Depends(get_db)):
@@ -121,7 +135,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = get_user_by_email(db, email)
 
     
-    if user and verify_password(password, user.hashed_password):
+    if user and user.is_active and verify_password(password, user.hashed_password):
         access_token = create_access_token(data={"username": user.email}, expires_delta=timedelta(minutes=30))
         return {"access_token": access_token, "token_type": "bearer"}
     raise HTTPException(
